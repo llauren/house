@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import time
+
 import paho.mqtt.client as mqtt
 client = mqtt.Client()
 
@@ -18,12 +20,21 @@ def on_connect(client, userdata, flags, rc):
 def on_message(client, userdata, msg):
     print(msg.topic+": "+str(msg.payload))
 
+    doit = False
     if (msg.topic.startswith("/events/sun")):
+        if "sunrise" == msg.payload:
+            value = 0
+            doit = True
         if "sunset" == msg.payload:
+            value = 1
+            doit = True
+
+        if doit:
             for light in lights:
                 topic = "/devices/42-Switch/controls/" + light + "/on"
-                print(topic, 1)
-                client.publish(topic, 1)
+                print(topic, value)
+                client.publish(topic, value)
+                time.sleep(0.1)
 
 client = mqtt.Client()
 client.on_connect = on_connect
