@@ -2,6 +2,16 @@
 
 import config
 
+import logging
+logging.basicConfig(format='%(asctime)s %(level)s: %(message)s')
+
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("--log", help="Log level (DEBUG, INFO, default=WARNING, ERROR)")
+args = parser.parse_args()
+if args.log:
+    logging.basicConfig(level=args.log)
+
 import time
 
 import paho.mqtt.client as mqtt
@@ -9,9 +19,9 @@ client = mqtt.Client()
 
 lights = ['Trees', 'Front', 'Stairs']
 
-# The callback for when the client receives a CONNACK response from the server.
+#prini The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
-    print("Connected with result code "+str(rc))
+    logging.info("Connected with result code %s" % str(rc))
 
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
@@ -20,21 +30,21 @@ def on_connect(client, userdata, flags, rc):
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
-    print(msg.topic+": "+str(msg.payload))
+    logging.info("%s : %s", msg.topic, str(msg.payload))
 
     doit = False
     if (msg.topic.startswith("/events/sun")):
-        if "sunrise" == msg.payload:
+        if msg.payload in [ 'sunrise', 'dawn' ]:
             value = 0
             doit = True
-        if "sunset" == msg.payload:
+        if msg.payload in [ 'sunset', 'dusk' ]:
             value = 1
             doit = True
 
         if doit:
             for light in lights:
                 topic = "/devices/42-Switch/controls/" + light + "/on"
-                print(topic, value)
+                logging.info("%s : %s", topic, value)
                 client.publish(topic, value)
                 time.sleep(0.1)
 
@@ -42,7 +52,9 @@ client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
 
-print("connecting to", config.broker)
+#print(getattr(logging, level.upper()))
+
+logging.info('connecting to %s', config.broker)
 client.connect(config.broker, 1883, 6)
 
 # Blocking call that processes network traffic, dispatches callbacks and
@@ -58,6 +70,6 @@ while rc == 0:
     client.unsubscribe("/events/#")
     client.disconnect()
     #on_disconnect()
-    print "Bye!"
-    #sys.exit()
+    logging.info("Bye!")
+   # sys.exit()
 
