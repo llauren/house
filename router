@@ -3,34 +3,47 @@
 import config
 
 import logging
-logging.basicConfig(format='%(asctime)s %(level)s: %(message)s')
+logging.basicConfig(filename='router.log', format='%(asctime)s %(message)s', level=logging.DEBUG)
+#logging.debug('This message should go to the log file')
+#logging.info('So should this')
+#logging.warning('And this, too')
 
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument("--log", help="Log level (DEBUG, INFO, default=WARNING, ERROR)")
-args = parser.parse_args()
-if args.log:
-    logging.basicConfig(level=args.log)
+
+#logging.basicConfig(format='%(asctime)s %(level)s: %(message)s', filename='router.log')
+#logger = logging.getLogger('router')
+#hdlr = logging.handlers.RotatingFileHandler( 'router.log', maxBytes=1000000, backupCount=5 )
+##formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+#hdlr.setFormatter(formatter)
+#logging.addHandler(hdlr)
+
+
+#import argparse
+#parser = argparse.ArgumentParser()
+#parser.add_argument("--log", help="Log level (DEBUG, INFO, default=WARNING, ERROR)")
+#args = parser.parse_args()
+#if args.log:
+#    logging.basicConfig(level=args.log)
 
 import time
 
 import paho.mqtt.client as mqtt
 client = mqtt.Client()
 
-lights = ['Trees', 'Front', 'Stairs']
+lights = ['Trees', 'Front', 'Stairs', 'Back']
 
 #prini The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
-    logging.info("Connected with result code %s" % str(rc))
+    logging.warning("Connected with result code %s", str(rc))
 
     # Subscribing in on_connect() means that if we lose the connection and
     # reconnect then subscriptions will be renewed.
     # client.subscribe("$SYS/#")
+    client.subscribe("/devices/solar/controls/#")
     client.subscribe("/events/#")
 
 # The callback for when a PUBLISH message is received from the server.
 def on_message(client, userdata, msg):
-    logging.info("%s : %s", msg.topic, str(msg.payload))
+    logging.debug("%s : %s", msg.topic, str(msg.payload))
 
     doit = False
     if (msg.topic.startswith("/events/sun")):
@@ -70,6 +83,6 @@ while rc == 0:
     client.unsubscribe("/events/#")
     client.disconnect()
     #on_disconnect()
-    logging.info("Bye!")
+    logging.warning("Bye!")
    # sys.exit()
 
