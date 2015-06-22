@@ -29,7 +29,8 @@ import time
 import paho.mqtt.client as mqtt
 client = mqtt.Client()
 
-lights = ['Trees', 'Front', 'Stairs', 'Back']
+#lights = ['Trees', 'Front', 'Stairs', 'Back']
+lights = [ 'Front', 'Stairs']
 
 #prini The callback for when the client receives a CONNACK response from the server.
 def on_connect(client, userdata, flags, rc):
@@ -46,11 +47,12 @@ def on_message(client, userdata, msg):
     logging.debug("%s : %s", msg.topic, str(msg.payload))
 
     doit = False
+
     if (msg.topic.startswith("/events/sun")):
         if msg.payload in [ 'sunrise', 'dawn' ]:
             value = 0
             doit = True
-        if msg.payload in [ 'sunset', 'dusk' ]:
+        if msg.payload in [ 'sunset', 'dusk', 'sunsetStart' ]:
             value = 1
             doit = True
 
