@@ -60,7 +60,7 @@ def on_message(client, userdata, msg):
             for light in lights:
                 topic = "/devices/42-Switch/controls/" + light + "/on"
                 logging.info("%s : %s", topic, value)
-                client.publish(topic, value)
+                client.publish(topic, value, qos=0, retain=True)
                 time.sleep(0.1)
 
 client = mqtt.Client()
@@ -69,8 +69,10 @@ client.on_message = on_message
 
 #print(getattr(logging, level.upper()))
 
-logging.info('connecting to %s', config.broker)
-client.connect(config.broker, 1883, 6)
+#logging.info('connecting to %s', config.broker)
+#client.connect(config.broker, 1883, 6)
+logging.info('connecting to %s', "192.168.11.40")
+client.connect("192.168.11.40", 1883, 6)
 
 # Blocking call that processes network traffic, dispatches callbacks and
 # handles reconnecting.
